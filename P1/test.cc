@@ -23,7 +23,14 @@ void test1() {
 
 	  char tbl_path[100];  // construct path of the tpch flat text file
 	  sprintf(tbl_path, "%s%s.tbl", tpch_dir, rel->name());
+	  cout << " tpch file will be loaded from " << tbl_path << endl;
 
+	  dbfile.Load(*(rel->schema()), tbl_path);
+	  dbfile.Close();
+}
+
+// sequential scan of a DBfile
+void test2() {
 	  DBFile dbfile;
 	  dbfile.Open(rel->path());
 	  dbfile.MoveFirst();
