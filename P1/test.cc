@@ -5,7 +5,11 @@
 #include "DBFile.h"
 
 // make sure that the file path/dir information below is correct
-const char *dbfile_dir = "";	// dir where binary heap files should be stored
+const char *dbfile_dir =
+    "/home/lin/Documents/GitHub/COP6726-DBI-SPRING22/P1/bin/";  // dir where
+						    // binary heap
+						    // files should
+						    // be stored
 const char *tpch_dir =
     "/home/lin/Documents/DBSI_DATA/10M/";  // dir where dbgen tpch files
 				   // (extension *.tbl) can be found

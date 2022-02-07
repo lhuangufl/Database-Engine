@@ -14,15 +14,15 @@ typedef enum { heap, sorted, tree } fType;
 
 class DBFile {
 	  char file_path[20];
-	  Record *current;
+	  Record *currentRecord;
 	  Page *readPage;
 	  Page *writePage;
 	  File *file;
 	  off_t pageIndex;
 	  off_t writeIndex;
 	  char *name;
-	  int writeIsDirty;
-	  int endOfFile;
+	  bool writeIsDirty;
+	  bool endOfFile;
 
         public:
 	  DBFile();
