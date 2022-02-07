@@ -43,9 +43,7 @@ class relation {
 			      std::cout << "Can't parse your CNF.\n";
 			      exit(1);
 		    }
-		    cnf_pred.GrowFromParseTree(
-		        final, schema(),
-		        literal);  // constructs CNF predicate
+		    cnf_pred.GrowFromParseTree(final, schema(), literal);
 	  }
 };
 
@@ -60,8 +58,7 @@ const char *lineitem = "lineitem";
 
 relation *s, *p, *ps, *n, *li, *r, *o, *c;
 
-void setup(const char *catalog_path, const char *dbfile_dir,
-	 const char *tpch_dir) {
+void setup(const char *catalog_path, const char *dbfile_dir, const char *tpch_dir) {
 	  cout << " \n** IMPORTANT: MAKE SURE THE INFORMATION BELOW IS "
 		"CORRECT **\n";
 	  cout << " catalog location: \t" << catalog_path << endl;
@@ -69,21 +66,14 @@ void setup(const char *catalog_path, const char *dbfile_dir,
 	  cout << " heap files dir: \t" << dbfile_dir << endl;
 	  cout << " \n\n";
 
-	  s = new relation(supplier, new Schema(catalog_path, supplier),
-		         dbfile_dir);
-	  ps = new relation(partsupp, new Schema(catalog_path, partsupp),
-			dbfile_dir);
+	  s = new relation(supplier, new Schema(catalog_path, supplier), dbfile_dir);
+	  ps = new relation(partsupp, new Schema(catalog_path, partsupp), dbfile_dir);
 	  p = new relation(part, new Schema(catalog_path, part), dbfile_dir);
-	  n = new relation(nation, new Schema(catalog_path, nation),
-		         dbfile_dir);
-	  li = new relation(lineitem, new Schema(catalog_path, lineitem),
-			dbfile_dir);
-	  r = new relation(region, new Schema(catalog_path, region),
-		         dbfile_dir);
-	  o = new relation(orders, new Schema(catalog_path, orders),
-		         dbfile_dir);
-	  c = new relation(customer, new Schema(catalog_path, customer),
-		         dbfile_dir);
+	  n = new relation(nation, new Schema(catalog_path, nation), dbfile_dir);
+	  li = new relation(lineitem, new Schema(catalog_path, lineitem), dbfile_dir);
+	  r = new relation(region, new Schema(catalog_path, region), dbfile_dir);
+	  o = new relation(orders, new Schema(catalog_path, orders), dbfile_dir);
+	  c = new relation(customer, new Schema(catalog_path, customer), dbfile_dir);
 }
 
 void cleanup() { delete s, p, ps, n, li, r, o, c; }
