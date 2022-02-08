@@ -5,15 +5,13 @@
 #include "DBFile.h"
 
 // make sure that the file path/dir information below is correct
-const char *dbfile_dir =
-    "/home/lin/Documents/GitHub/COP6726-DBI-SPRING22/P1/bin/";  // dir where
-						    // binary heap
-						    // files should
-						    // be stored
-const char *tpch_dir =
-    "/home/lin/Documents/DBSI_DATA/10M/";  // dir where dbgen tpch files
-				   // (extension *.tbl) can be found
-const char *catalog_path = "catalog";	   // full path of the catalog file
+const char *dbfile_dir = "/home/lin/Documents/GitHub/COP6726-DBI-SPRING22/P1/bin/";  // dir where
+								     // binary heap
+								     // files should
+								     // be stored
+const char *tpch_dir = "/home/lin/Documents/DBSI_DATA/10M/";  // dir where dbgen tpch files
+						  // (extension *.tbl) can be found
+const char *catalog_path = "catalog";			  // full path of the catalog file
 
 using namespace std;
 
@@ -38,7 +36,6 @@ void test2() {
 	  DBFile dbfile;
 	  dbfile.Open(rel->path());
 	  dbfile.MoveFirst();
-
 	  Record temp;
 
 	  int counter = 0;

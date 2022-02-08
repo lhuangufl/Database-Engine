@@ -17,8 +17,8 @@ DBFile::DBFile() {
 	  this->readPage = new Page();
 	  this->writePage = new Page();
 	  this->currentRecord = new Record();
-	  pageIndex = 1;
-	  writeIndex = 1;
+	  pageIndex = 0;
+	  writeIndex = 0;
 	  writeIsDirty = false;
 	  endOfFile = false;
 }
@@ -38,20 +38,32 @@ int DBFile::Create(char *f_path, fType f_type, void *startup) {
 			      std::cerr << e.what() << '\n';
 			      return 0;
 		    }
+		    readPage->EmptyItOut();
+		    writePage->EmptyItOut();
 	  } else {
 		    std::cout << f_type << " Not Implemented Yet! \n";
-		    exit(1);
+		    return 0;
 	  }
 	  return 1;
 }
 
 void DBFile::Load(Schema &f_schema, char *loadpath) {
+	  std::cout << "Loading from " << loadpath << std::endl;
 	  FILE *dbfile = fopen(loadpath, "r");
 	  Record temp;
-
-	  while (temp.SuckNextRecord(&f_schema, dbfile) != 0) {
-		    this->Add(temp);
+	  Page *page = new Page();
+	  this->pageIndex = 0;
+	  while (temp.SuckNextRecord(&f_schema, dbfile)) {
+		    if (page->Append(&temp) == 0) {
+			      std::cout << "Page is full!" << std::endl;
+			      this->file->AddPage(page, this->pageIndex + 1);
+			      this->pageIndex++;
+			      page->EmptyItOut();
+			      page->Append(&temp);
+		    }
 	  }
+	  this->file->AddPage(page, this->pageIndex + 1);
+	  page->EmptyItOut();
 
 	  fclose(dbfile);
 }
@@ -63,24 +75,27 @@ int DBFile::Open(char *f_path) {
 		    std::cerr << e.what() << '\n';
 		    return 0;
 	  }
-
-	  pageIndex = 1;
+	  this->pageIndex = 1;
 	  endOfFile = false;
 	  return 1;
 }
 
 void DBFile::MoveFirst() {
-	  this->file->GetPage(this->readPage, 1);
+	  if (this->file->GetLength() < 1) {
+		    std::cerr << "DBFile::MoveFirst() : No Data in File" << std::endl;
+		    exit(1);
+	  }
+	  this->file->GetPage(this->readPage, pageIndex);	 // get the first page
 	  if (this->readPage->GetFirst(this->currentRecord) == 0) {
 		    std::cout << "No records in the first page \n";
-		    exit(1);
+		    this->endOfFile = true;
 	  }
 }
 
 int DBFile::Close() {
-	  if (this->writeIsDirty == 1) {
+	  if (this->writeIsDirty) {
 		    this->file->AddPage(writePage, writeIndex);
-		    writeIndex++;
+		    this->writeIndex++;
 	  }
 	  endOfFile = true;
 	  return this->file->Close();
@@ -88,7 +103,7 @@ int DBFile::Close() {
 
 void DBFile::Add(Record &rec) {
 	  this->writeIsDirty = 1;
-
+	  this->file->GetPage(this->writePage, this->file->GetLength() - 1);
 	  Record write;
 	  write.Consume(&rec);
 
@@ -105,38 +120,25 @@ int DBFile::GetNext(Record &fetchme) {
 		    fetchme.Copy(this->currentRecord);
 		    if (this->readPage->GetFirst(this->currentRecord) == 0) {
 			      pageIndex++;
-			      if (pageIndex > this->file->GetLength()) {
+			      if (pageIndex >= this->file->GetLength() - 1) {
 				        endOfFile = true;
-				        std::cout << "Page Index Exceeds File Length"
-					        << std::endl;
-				        return 0;
 			      } else {
 				        this->file->GetPage(this->readPage, pageIndex);
+				        this->readPage->GetFirst(this->currentRecord);
 			      }
-		    } else {
-			      std::cout << "currentRecord is the first one" << std::endl;
 		    }
 		    return 1;
-	  } else {
-		    std::cout << "Already at the end of the file" << std::endl;
-		    return 0;
 	  }
+	  return 0;
 }
 
 int DBFile::GetNext(Record &fetchme, CNF &cnf, Record &literal) {
 	  ComparisonEngine compare;
-	  int result1 = 0;
-	  int result2 = 1;
-	  // Record temp2;
 
-	  while (result1 == 0 && result2 != 0) {
-		    result2 = this->GetNext(fetchme);
-		    result1 = compare.Compare(&fetchme, &literal, &cnf);
+	  while (this->GetNext(fetchme)) {
+		    if (compare.Compare(&fetchme, &literal, &cnf)) {
+			      return 1;
+		    }
 	  }
-
-	  if (result2 == 0) return 0;
-
-	  if (result1 == 1) return 1;
-
 	  return 0;
 }
