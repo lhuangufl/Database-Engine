@@ -5,11 +5,11 @@
 #include "DBFile.h"
 
 // make sure that the file path/dir information below is correct
-const char *dbfile_dir = "/home/lin/Documents/Github/COP6726-DBI-SPRING22/P1/bin/";  // dir where
+const char *dbfile_dir = "bin/";  // dir where
 								     // binary heap
 								     // files should
 								     // be stored
-const char *tpch_dir = "/home/lin/Documents/Github/COP6726-DBI-SPRING22/tpch-dbgen/1G/";  // dir where dbgen tpch files
+const char *tpch_dir = "../tpch-dbgen/1G/";  // dir where dbgen tpch files
 						  // (extension *.tbl) can be found
 const char *catalog_path = "catalog";			  // full path of the catalog file
 
