@@ -16,7 +16,7 @@ test.o: test.cc
 	$(CC) -g -c test.cc -o build/test.o
 
 main.o: main.cc
-	$(CC) -g -c main.cc -o build/
+	$(CC) -g -c main.cc -o
 
 Comparison.o: Comparison.cc
 	$(CC) -g -c Comparison.cc -o build/Comparison.o
