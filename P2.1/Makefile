@@ -8,7 +8,7 @@ tag = -n
 endif
 
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o -lfl -lpthread
+	$(CC) -o test.out build/Record.o build/Comparison.o build/ComparisonEngine.o build/Schema.o build/File.o build/BigQ.o build/DBFile.o build/Pipe.o build/y.tab.o build/lex.yy.o build/test.o -lfl -lpthread
 
 test_old.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test_old.o
 	$(CC) -o test_old.out build/Record.o build/Comparison.o build/ComparisonEngine.o build/Schema.o build/File.o build/DBFile.o build/y.tab.o build/lex.yy.o build/test_old.o -lfl
