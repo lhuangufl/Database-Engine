@@ -4,6 +4,7 @@
 	"terminal.integrated.fontWeightBold": "bold",
 	"C_Cpp.errorSquiggles": "Disabled",
 	"files.associations": {
-		"concepts": "cpp"
+		"concepts": "cpp",
+		"iostream": "cpp"
 	}
 }
