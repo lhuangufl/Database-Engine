@@ -56,13 +56,13 @@ void DBFile::Load(Schema &f_schema, char *loadpath) {
 	  while (temp.SuckNextRecord(&f_schema, dbfile)) {
 		    if (page->Append(&temp) == 0) {
 			      std::cout << "Page is full!" << std::endl;
-			      this->file->AddPage(page, this->pageIndex);
+			      this->file->AddPage(page, this->pageIndex + 1);
 			      this->pageIndex++;
 			      page->EmptyItOut();
 			      page->Append(&temp);
 		    }
 	  }
-	  this->file->AddPage(page, this->pageIndex+1);
+	  this->file->AddPage(page, this->pageIndex + 1);
 	  page->EmptyItOut();
 
 	  fclose(dbfile);

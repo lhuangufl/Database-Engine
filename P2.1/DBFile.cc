@@ -6,7 +6,7 @@
 #include "ComparisonEngine.h"
 #include "DBFile.h"
 #include "Defs.h"
-
+//Delete after testing
 #include <iostream>
 
 // stub file .. replace it with your own DBFile.cc
@@ -17,7 +17,7 @@ DBFile::DBFile () {
     pageIndex = 0;
 }
 
-int DBFile::Create (char *f_path, fType f_type, void *startup) {
+int DBFile::Create (const char *f_path, fType f_type, void *startup) {
     if (isFileOpen == 1) {
         cerr << "Cannot recreate file since file already opened!" << "\n";
         return 0;
@@ -32,7 +32,7 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
     return 1;
 }
 
-void DBFile::Load (Schema &f_schema, char *loadpath) {
+void DBFile::Load (Schema &f_schema, const char *loadpath) {
     if (isFileOpen == 0) {
         cerr << "Cannot loading while file not open!";
         return;
@@ -48,7 +48,7 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
         diskFile.AddPage(&bufferPage, pageIndex);
 }
 
-int DBFile::Open (char *f_path) {
+int DBFile::Open (const char *f_path) {
     if (isFileOpen == 1) {
         cerr << "File already opened!" << "\n";
         return 0;
@@ -119,7 +119,7 @@ void DBFile::Add (Record &rec) {
 //Assume file is open
 int DBFile::GetNext (Record &fetchme) {
     if (isFileOpen == 0) {
-        std::cerr << "Cannot reading while file not opening!" << "\n";
+        cerr << "Cannot reading while file not opening!" << "\n";
         return 0;
     }
     //If file is writing, then write page into disk based file, redirect page ot first page
