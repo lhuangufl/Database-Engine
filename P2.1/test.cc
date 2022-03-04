@@ -26,6 +26,7 @@ void *producer (void *arg) {
 	myPipe->ShutDown ();
 
 	cout << " producer: inserted " << counter << " recs into the pipe\n";
+	return NULL;
 }
 
 void *consumer (void *arg) {
@@ -79,6 +80,7 @@ void *consumer (void *arg) {
 	if (err) {
 		cerr << " consumer: " <<  err << " recs failed sorted order test \n" << endl;
 	}
+	return NULL;
 }
 
 
@@ -87,6 +89,7 @@ void test1 (int option, int runlen) {
 	// sort order for records
 	OrderMaker sortorder;
 	rel->get_sort_order (sortorder);
+    sortorder.Print();
 
 	int buffsz = 100; // pipe cache size
 	Pipe input (buffsz);

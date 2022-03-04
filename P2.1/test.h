@@ -1,12 +1,10 @@
 #ifndef TEST_H
 #define TEST_H
 #include <stdio.h>
-#include <stdlib.h>
-
 #include <iostream>
-
-#include "DBFile.h"
+#include <stdlib.h>
 #include "Pipe.h"
+#include "DBFile.h"
 #include "Record.h"
 
 using namespace std;
@@ -14,12 +12,12 @@ using namespace std;
 // make sure that the information below is correct
 
 char* catalog_path = "catalog";
-char* tpch_dir = "../tpch-dbgen/1G/";  // dir where dbgen tpch files (extension
-				       // *.tbl) can be found
-char* dbfile_dir = "bin/";
+char* tpch_dir = "../tpch-dbgen/1G/"; // dir where dbgen tpch files (extension *.tbl) can be found
+char* dbfile_dir = "bin/"; // dir where bin file stored
+
 
 extern "C" {
-	int yyparse(void);  // defined in y.tab.c
+	int yyparse(void);   // defined in y.tab.c
 }
 
 extern struct AndList* final;
@@ -29,20 +27,19 @@ typedef struct {
 	OrderMaker* order;
 	bool print;
 	bool write;
-} testutil;
+}testutil;
 
 class relation {
+
 private:
 	char* rname;
 	char* prefix;
 	char rpath [100];
 	Schema* rschema;
-
 public:
-	relation(char* _name, Schema* _schema, char* _prefix)
-		: rname(_name), rschema(_schema), prefix(_prefix) {
+	relation(char* _name, Schema* _schema, char* _prefix) :
+		rname(_name), rschema(_schema), prefix(_prefix) {
 		sprintf(rpath, "%s%s.bin", prefix, rname);
-		cout << rpath << endl;
 	}
 	char* name() { return rname; }
 	char* path() { return rpath; }
@@ -59,8 +56,7 @@ public:
 			cout << "Can't parse your CNF.\n";
 			exit(1);
 		}
-		cnf_pred.GrowFromParseTree(final, schema(),
-			literal);  // constructs CNF predicate
+		cnf_pred.GrowFromParseTree(final, schema(), literal); // constructs CNF predicate
 	}
 	void get_sort_order(OrderMaker& sortorder) {
 		cout << "\n specify sort ordering (when done press ctrl-D):\n\t ";
@@ -71,20 +67,15 @@ public:
 		cout << " \n";
 		Record literal;
 		CNF sort_pred;
-		sort_pred.GrowFromParseTree(final, schema(),
-			literal);  // constructs CNF predicate
-		cout << "After executing sort_pred.GrowFromParseTree(final, "
-			"schema(),literal)\n";
-		sort_pred.Print();
+		sort_pred.GrowFromParseTree(final, schema(), literal); // constructs CNF predicate
 		OrderMaker dummy;
 		sort_pred.GetSortOrders(sortorder, dummy);
-		cout << "After executing sort_pred.GetSortOrders(sortorder, dummy)\n";
-		sortorder.Print();
-		dummy.Print();
 	}
 };
 
+
 relation* rel;
+
 
 char* supplier = "supplier";
 char* partsupp = "partsupp";
@@ -114,6 +105,8 @@ void setup() {
 	c = new relation(customer, new Schema(catalog_path, customer), dbfile_dir);
 }
 
-void cleanup() { delete s, p, ps, n, li, r, o, c; }
+void cleanup() {
+	delete s, p, ps, n, li, r, o, c;
+}
 
 #endif
