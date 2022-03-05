@@ -2,67 +2,67 @@
 #include "BigQ.h"
 #include <pthread.h>
 
-void *producer (void *arg) {
+void* producer(void* arg) {
 
-	Pipe *myPipe = (Pipe *) arg;
+	Pipe* myPipe = (Pipe*)arg;
 
 	Record temp;
 	int counter = 0;
 
 	DBFile dbfile;
-	dbfile.Open (rel->path ());
-	cout << " producer: opened DBFile " << rel->path () << endl;
-	dbfile.MoveFirst ();
+	dbfile.Open(rel->path());
+	cout << " producer: opened DBFile " << rel->path() << endl;
+	dbfile.MoveFirst();
 
-	while (dbfile.GetNext (temp) == 1) {
+	while (dbfile.GetNext(temp) == 1) {
 		counter += 1;
-		if (counter%100000 == 0) {
-			 cerr << " producer: " << counter << endl;	
+		if (counter % 100000 == 0) {
+			cerr << " producer: " << counter << endl;
 		}
-		myPipe->Insert (&temp);
+		myPipe->Insert(&temp);
 	}
 
-	dbfile.Close ();
-	myPipe->ShutDown ();
+	dbfile.Close();
+	myPipe->ShutDown();
 
 	cout << " producer: inserted " << counter << " recs into the pipe\n";
 	return NULL;
 }
 
-void *consumer (void *arg) {
-	
-	testutil *t = (testutil *) arg;
+void* consumer(void* arg) {
+
+	testutil* t = (testutil*)arg;
 
 	ComparisonEngine ceng;
 
 	DBFile dbfile;
-	char outfile[100];
+	char outfile [100];
 
 	if (t->write) {
-		sprintf (outfile, "%s.bigq", rel->path ());
-		dbfile.Create (outfile, heap, NULL);
+		sprintf(outfile, "%s.bigq", rel->path());
+		dbfile.Create(outfile, heap, NULL);
 	}
 
 	int err = 0;
 	int i = 0;
 
-	Record rec[2];
-	Record *last = NULL, *prev = NULL;
+	Record rec [2];
+	Record* last = NULL, * prev = NULL;
 
-	while (t->pipe->Remove (&rec[i%2])) {
+	while (t->pipe->Remove(&rec [i % 2])) {
 		prev = last;
-		last = &rec[i%2];
+		last = &rec [i % 2];
 
 		if (prev && last) {
-			if (ceng.Compare (prev, last, t->order) == 1) {
+			if (ceng.Compare(prev, last, t->order) == 1) {
 				err++;
 			}
 			if (t->write) {
-				dbfile.Add (*prev);
+				dbfile.Add(*prev);
 			}
 		}
 		if (t->print) {
-			last->Print (rel->schema ());
+			last->Print(rel->schema());
 		}
 		i++;
 	}
@@ -71,56 +71,56 @@ void *consumer (void *arg) {
 
 	if (t->write) {
 		if (last) {
-			dbfile.Add (*last);
+			dbfile.Add(*last);
 		}
 		cerr << " consumer: recs removed written out as heap DBFile at " << outfile << endl;
-		dbfile.Close ();
+		dbfile.Close();
 	}
 	cerr << " consumer: " << (i - err) << " recs out of " << i << " recs in sorted order \n";
 	if (err) {
-		cerr << " consumer: " <<  err << " recs failed sorted order test \n" << endl;
+		cerr << " consumer: " << err << " recs failed sorted order test \n" << endl;
 	}
 	return NULL;
 }
 
 
-void test1 (int option, int runlen) {
+void test1(int option, int runlen) {
 
 	// sort order for records
 	OrderMaker sortorder;
-	rel->get_sort_order (sortorder);
-    sortorder.Print();
+	rel->get_sort_order(sortorder);
+	sortorder.Print();
 
 	int buffsz = 100; // pipe cache size
-	Pipe input (buffsz);
-	Pipe output (buffsz);
+	Pipe input(buffsz);
+	Pipe output(buffsz);
 
 	// thread to dump data into the input pipe (for BigQ's consumption)
 	pthread_t thread1;
-	pthread_create (&thread1, NULL, producer, (void *)&input);
+	pthread_create(&thread1, NULL, producer, (void*)&input);
 
 	// thread to read sorted data from output pipe (dumped by BigQ)
 	pthread_t thread2;
-	testutil tutil = {&output, &sortorder, false, false};
+	testutil tutil = { &output, &sortorder, false, false };
 	if (option == 2) {
 		tutil.print = true;
 	}
 	else if (option == 3) {
 		tutil.write = true;
 	}
-	pthread_create (&thread2, NULL, consumer, (void *)&tutil);
+	pthread_create(&thread2, NULL, consumer, (void*)&tutil);
 
-	BigQ bq (input, output, sortorder, runlen);
+	BigQ bq(input, output, sortorder, runlen);
 
-	pthread_join (thread1, NULL);
-	pthread_join (thread2, NULL);
+	pthread_join(thread1, NULL);
+	pthread_join(thread2, NULL);
 }
 
-int main (int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 
-	setup ();
+	setup();
 
-	relation *rel_ptr[] = {n, r, c, p, ps, o, li};
+	relation* rel_ptr[] = { n, r, c, p, ps, o, li };
 
 	int tindx = 0;
 	while (tindx < 1 || tindx > 3) {
@@ -148,8 +148,8 @@ int main (int argc, char *argv[]) {
 	int runlen;
 	cout << "\t\n specify runlength:\n\t ";
 	cin >> runlen;
-	
-	test1 (tindx, runlen);
 
-	cleanup ();
+	test1(tindx, runlen);
+
+	cleanup();
 }

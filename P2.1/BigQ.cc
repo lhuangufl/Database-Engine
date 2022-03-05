@@ -31,7 +31,6 @@ int BigQ::ExcuteSortPhase() {
 	priority_queue<Record*, vector<Record*>, decltype(RecordComparator)> recordPQ(RecordComparator);
 	priority_queue<Run*, vector<Run*>, decltype(RunComparator)> runPQ(RunComparator);
 	while (this->input->Remove(&curRecord) == 1) {
-		std::cout << "Remove 1 record from Input Piepe; Wait for next record" << std::endl;
 		Record* tmpRecord = new Record;
 		tmpRecord->Copy(&curRecord);
 		//Add to another page if current page is full

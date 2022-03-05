@@ -17,11 +17,11 @@ test_old.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o 
 a1test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o y.tab.o lex.yy.o a1-test.o
 	$(CC) -o a1test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o y.tab.o lex.yy.o a1-test.o # -lfl
 
-gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o y.tab.o lex.yy.o gtest.o
-	$(CC) -o gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o y.tab.o lex.yy.o gtest.o $(gtest_tag)
+gTest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o gTest.o
+	$(CC) -std=c++17 -I h -pthread -o gTest Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o gTest.o /usr/lib/libgtest.a -lfl
 
-gtest.o: gtest.cpp
-	$(CC) -g -c gtest.cpp $(gtest_tag)
+gTest.o: gTest.cpp
+	g++ -std=c++17 -Wall -I h -I /usr/include -c gTest.cpp
 
 test.o: test.cc
 	$(CC) -g -c test.cc
