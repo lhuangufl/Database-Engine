@@ -1,0 +1,133 @@
+ 
+** IMPORTANT: MAKE SURE THE INFORMATION BELOW IS CORRECT **
+ catalog location: 	catalog
+ tpch files dir: 	../tpch-dbgen/1G/
+ heap files dir: 	
+ 
+
+ select test option: 
+ 	 1. create sorted dbfile
+ 	 2. scan a dbfile
+ 	 3. run some query 
+ 	 
+ select table: 
+	 1. nation 
+	 2. region 
+	 3. customer 
+	 4. part 
+	 5. partsupp 
+	 6. supplier 
+	 7. orders 
+	 8. lineitem 
+ 	 	
+ specify runlength:
+	  input from file : ../tpch-dbgen/1G/nation.tbl
+
+ select option for : nation.bin
+ 	 1. add a few (1 to 1k recs)
+ 	 2. add a lot (1k to 1e+06 recs) 
+ 	 3. run some query 
+ 	 
+ specify sort ordering (when done press ctrl-D):
+	 
+ output to dbfile : nation.bin
+meta data in nation.bin.meta
+DBFileSort Created Successfully!!
+DBFileSort Closed Successfully!@
+rel->path()nation.bin
+NumAtts =     1
+  0:     2 Int
+numrecs = 288
+current = 1
+Finish Adding Data back in test, proc = 25
+
+	 added 25 recs..so far 25
+
+ create finished.. 25 recs inserted
+
+
+****************************************************************************************************************************************************************************************
+ 
+** IMPORTANT: MAKE SURE THE INFORMATION BELOW IS CORRECT **
+ catalog location: 	catalog
+ tpch files dir: 	../tpch-dbgen/1G/
+ heap files dir: 	
+ 
+
+ select test option: 
+ 	 1. create sorted dbfile
+ 	 2. scan a dbfile
+ 	 3. run some query 
+ 	 
+ select table: 
+	 1. nation 
+	 2. region 
+	 3. customer 
+	 4. part 
+	 5. partsupp 
+	 6. supplier 
+	 7. orders 
+	 8. lineitem 
+ 	 	
+ specify runlength:
+	  input from file : ../tpch-dbgen/1G/customer.tbl
+
+ select option for : customer.bin
+ 	 1. add a few (1 to 1k recs)
+ 	 2. add a lot (1k to 1e+06 recs) 
+ 	 3. run some query 
+ 	 
+ specify sort ordering (when done press ctrl-D):
+	 
+ output to dbfile : customer.bin
+meta data in customer.bin.meta
+DBFileSort Created Successfully!!
+DBFileSort Closed Successfully!@
+rel->path()customer.bin
+NumAtts =     1
+  0:     5 Double
+numrecs = 119288
+current = 1
+Finish Adding Data back in test, proc = 119288
+
+	 added 119288 recs..so far 119288
+
+ create finished.. 119288 recs inserted
+
+
+****************************************************************************************************************************************************************************************
+ 
+** IMPORTANT: MAKE SURE THE INFORMATION BELOW IS CORRECT **
+ catalog location: 	catalog
+ tpch files dir: 	../tpch-dbgen/1G/
+ heap files dir: 	
+ 
+
+ select test option: 
+ 	 1. create sorted dbfile
+ 	 2. scan a dbfile
+ 	 3. run some query 
+ 	 
+ select table: 
+	 1. nation 
+	 2. region 
+	 3. customer 
+	 4. part 
+	 5. partsupp 
+	 6. supplier 
+	 7. orders 
+	 8. lineitem 
+ 	 
+ enter CNF predicate (when done press ctrl-D):
+	NumAtts =     1
+  0:     5 Double
+( Att 4 from left record > Att 0 from literal record (String))  AND
+( Att 6 from left record = Att 1 from literal record (String)) 
+original lower bound: 0
+original higher bound: 0
+updated lower bound by Binary Search: 0
+updated higher bound by Binary Search: 0
+
+ query over customer.bin returned 0 recs
+
+
