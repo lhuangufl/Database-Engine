@@ -65,3 +65,6 @@ P2.1/include/**
 *.meta
 *.vscode
 *.DS_Store
+*.json
+*.bigQ
+*.heap
