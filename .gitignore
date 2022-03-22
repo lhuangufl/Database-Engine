@@ -60,3 +60,8 @@ P1/build/**
 P2.1/build/**
 P1/include/**
 P2.1/include/**
+*.tbl
+*.zip
+*.meta
+*.vscode
+*.DS_Store
