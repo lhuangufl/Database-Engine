@@ -3,6 +3,9 @@
 #include <iostream> 
 #include <stdlib.h>
 
+// Default constructor, do nothing
+Pipe :: Pipe() {}
+
 Pipe :: Pipe (int bufferSize) {
 
 	// set up the mutex assoicated with the pipe
@@ -129,4 +132,26 @@ void Pipe :: ShutDown () {
 	// unlock the mutex
 	pthread_mutex_unlock (&pipeMutex);
 	
+}
+
+bool Pipe :: isClosed() {
+
+    pthread_mutex_lock (&pipeMutex);
+
+    bool res = (done == 1);
+
+    pthread_mutex_unlock (&pipeMutex);
+
+    return res;
+}
+
+bool Pipe :: isEmpty() {
+
+    pthread_mutex_lock (&pipeMutex);
+
+    bool res = (lastSlot == firstSlot);
+
+    pthread_mutex_unlock (&pipeMutex);
+
+    return res;
 }

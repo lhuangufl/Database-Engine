@@ -1,176 +1,256 @@
 #include "BigQ.h"
-#include "DBFileHeap.h"
 
-void* Worker(void* bigQ) {
+using namespace std;
 
-	auto* bigq = (BigQ*)bigQ;
+OrderMaker BigQ::m_attOrder;
+SortOrder BigQ::m_sortMode = Ascending; 
 
-	bigq->ExcuteSortPhase();
-	bigq->ExcuteMergePhase();
+BigQ::BigQ(Pipe &inPipe, Pipe &outPipe, OrderMaker &order, int runLen) {
+    if (runLen <= 0) {
+        throw invalid_argument("In BigQ::BigQ, 'runLen' cannot be zero or negative");
+    }
+    m_inputPipe = &inPipe;
+    m_outputPipe = &outPipe;
+    m_attOrder = order;
+    m_runLength = runLen; 
+    m_numRuns = 0;
 
-	return nullptr;
+    const int tmp_filename_len = 10;
+    m_sortTmpFilePath = Util::randomStr(tmp_filename_len) + ".tmp";
 
-	//Set disk based file for sorting
+    pthread_t worker;
+	pthread_create (&worker, NULL, (THREADFUNCPTR) &BigQ::externalSort, this);
 }
 
-int BigQ::ExcuteSortPhase() {
-	//Buffer page used for disk based file
-	Page bufferPage;
-	Record curRecord;
-	off_t pageIndex = 0;
-	int pageCounter = 0;
-	int currentSize = 0;
-	// Custom comparator that defines the order for our priority queue.
-	auto RecordComparator = [this](Record* left, Record* right) {
-		return (comp->Compare(left, right, order) >= 0);
-	};
+BigQ::~BigQ() {}
 
-	//Retrieve all records from input pipe
-	priority_queue<Record*, vector<Record*>, decltype(RecordComparator)> recordPQ(RecordComparator);
+bool BigQ::compare4Sort(Record *left, Record *right) {
 
-
-	while (this->input->Remove(&curRecord) == 1) {
-		currentSize++;
-		Record* tmpRecord = new Record;
-		tmpRecord->Copy(&curRecord);
-
-		if (bufferPage.Append(&curRecord) == 0) {
-			pageCounter++;
-			bufferPage.EmptyItOut();
-
-			if (pageCounter == runlen) {
-				while (!recordPQ.empty()) {
-					Record* rec = new Record;
-					rec = recordPQ.top();
-					recordPQ.pop();
-					if (bufferPage.Append(rec) == 0) {
-
-						file.AddPage(&bufferPage, pageIndex++);
-						bufferPage.EmptyItOut();
-						bufferPage.Append(rec);
-
-					}
-				}
-				file.AddPage(&bufferPage, pageIndex++);
-				pageCounter = 0;
-				runIndexes.push_back(pageIndex);
-			}
-
-			bufferPage.Append(&curRecord);
-		}
-		recordPQ.push(tmpRecord);
-	}
-	bufferPage.EmptyItOut();
-
-	while (!recordPQ.empty()) {
-		Record* rec = new Record;
-		rec = recordPQ.top();
-		recordPQ.pop();
-		if (bufferPage.Append(rec) == 0) {
-			file.AddPage(&bufferPage, pageIndex++);
-			bufferPage.EmptyItOut();
-		}
-	}
-	file.AddPage(&bufferPage, pageIndex++);
-	runIndexes.push_back(pageIndex);
-
-	bufferPage.EmptyItOut();
+    ComparisonEngine compEngine; 
+    int res = compEngine.Compare(left, right, &m_attOrder);
+    if (m_sortMode == Ascending){ 
+        return (res > 0);  
+    }
+    else if (m_sortMode == Descending){ 
+        return (res < 0); 
+    }
+    
 }
 
-
-int BigQ::ExcuteMergePhase() {
-
-	auto RunComparator = [this](Run* left, Run* right) {
-		return (comp->Compare(left->nextRecordPtr, right->nextRecordPtr, order) >= 0);
-	};
-	priority_queue<Run*, vector<Run*>, decltype(RunComparator)> runPQ(RunComparator);
-
-	off_t prev = 0;
-	for (auto& i : runIndexes) {
-		runPQ.push(new Run(&file, prev, i));
-		prev = i;
-	}
-	if (runPQ.size() > 1) runPQ.pop();
-	Run* tempRun;
-	Record tempRec, * tempRec2;
-	int current = 0;
-
-	current = 0;
-	// DBFileHeap tempHeapFile;
-	// tempHeapFile.Create("tmp1.heap", heap, nullptr);
-	while (!runPQ.empty()) {
-		tempRun = runPQ.top();
-		current++;
-
-		output->Insert(tempRun->nextRecordPtr);
-
-		if (tempRun->NextRecord() == 1) {
-			// cout << "Push BACK RUN = " << current << endl;
-			runPQ.push(tempRun);
-
-		}
-		cout << "current = " << current << endl;
-		// tempHeapFile.Close();
-
-		delete tempRun;
-		file.Close();
-		output->ShutDown();
-		return 1;
-	}
+void BigQ::sortRecords(vector<Record*> &recs, const OrderMaker &order, SortOrder mode){
+    sort(recs.begin(), recs.end(), compare4Sort);
 }
 
-int Run::NextRecord() {
+void BigQ::readFromPipe(File &outputFile){
+    
+    vector<Record*> runBuffer;
+    Record curRecord;
+    Page tmpPage;
+    long long curPageIdxInFile = 0;
 
-	if (bufferPage.GetFirst(nextRecordPtr) == 0) {
-		curPageIdx++;
-		if (curPageIdx == startPageIdx + runlen) {
-			return 0;
-		}
-		else
-		{
-			bufferPage.EmptyItOut();
-			file->GetPage(&bufferPage, curPageIdx);
-			bufferPage.GetFirst(nextRecordPtr);
-		}
-	}
-	return 1;
-}
+    Record* remainRecord = NULL; 
 
+    while (true){
 
+        long long totalReadBytes = 0;
+        
+        if (remainRecord != NULL) {
+            runBuffer.push_back(remainRecord);
+            totalReadBytes += remainRecord->length();
+            remainRecord = NULL;
+        }
 
-BigQ::BigQ(Pipe* in, Pipe* out, OrderMaker& sortorder, int runlen) {
+        while (totalReadBytes < PAGE_SIZE * m_runLength && m_inputPipe->Remove(&curRecord) != 0){
+            Record* tmp = new Record();
+            tmp->Copy(&curRecord);
+            runBuffer.push_back(tmp);
+            totalReadBytes += curRecord.length();
+        }
+        
+        if (totalReadBytes > PAGE_SIZE * m_runLength) {
+            remainRecord = runBuffer.back();
+            runBuffer.pop_back();
+            totalReadBytes -= curRecord.length();
+        }
 
-	//Construct arguement used for worker thread
-	this->input = in;
-	this->output = out;
-	this->order = &sortorder;
-	this->runlen = runlen;
-	this->comp = new ComparisonEngine();
+        sortRecords(runBuffer, m_attOrder, m_sortMode); 
+        
+        if (!runBuffer.empty()) {
+            m_runStartEndLoc.push_back(pair<long long, long long>(curPageIdxInFile, curPageIdxInFile)); 
+            m_numRuns++;
+        }
 
-	this->file.Open(0, "tmp.bigQ");
-	this->thread = new pthread_t();
-	pthread_create(thread, nullptr, Worker, (void*)this);
+        while (!runBuffer.empty()) {   
+            tmpPage.EmptyItOut();
+            while (!runBuffer.empty() && tmpPage.Append(runBuffer.back())){
+                delete runBuffer.back();
+                runBuffer.pop_back();
+            }
+            outputFile.AddPage(&tmpPage, curPageIdxInFile);
+            curPageIdxInFile++;
+        }
+
+        if (!m_runStartEndLoc.empty() && curPageIdxInFile > m_runStartEndLoc.back().second) {            
+            m_runStartEndLoc[m_numRuns - 1].second = curPageIdxInFile;
+        }      
+
+        if (m_inputPipe->isClosed() && m_inputPipe->isEmpty() && remainRecord == NULL) {
+            return;
+        }
+
+    } 
 
 }
 
-BigQ::~BigQ() {
+void BigQ::safeHeapPush(long long idx, Record* pushMe) {
+    Record *copy = new Record();
+    copy->Consume(pushMe);
+    m_heap.push(pair<long long, Record*>(idx, copy));
+    delete pushMe;
+}
+
+int BigQ::nextPopBlock(vector<Block>& blocks) {
+    if (blocks.empty() || m_heap.empty()) {
+        return -1;
+    }
+    
+    return m_heap.top().first;
+}
+
+void BigQ::mergeBlocks(vector<Block>& blocks) {
+    int nextPop = nextPopBlock(blocks);
+    if (nextPop == -1) {
+        throw runtime_error("In BigQ::mergeBlocks, 'blocks' and 'm_heap' must be both non-empty initially.");
+    }
+    
+    while (nextPop >= 0) {
+
+        Record* front = new Record();
+
+        blocks[nextPop].getFrontRecord(*front);
+        blocks[nextPop].popFrontRecord();
+
+        m_outputPipe->Insert(front);
+
+        delete m_heap.top().second;
+
+        m_heap.pop();
+
+        if (blocks[nextPop].getFrontRecord(*front)) {
+            safeHeapPush(nextPop, front);
+        }
+        else {
+            delete front; 
+            front = NULL;
+        }
+
+        nextPop = nextPopBlock(blocks);
+    }
 
 }
 
-Run::Run(File* file, off_t start, int pageLength) {
-	this->file = file;
-	this->runlen = pageLength;
-	this->startPageIdx = start;
-	this->curPageIdx = start;
+void BigQ::writeToPipe(File &inputFile){
+    if (m_numRuns == 0) {
+        std::cout << "[Error] externalSort Phase 2: numRuns is zero! (InPipe addr: " << &m_inputPipe << ")" << std::endl;
+        m_outputPipe->ShutDown();
+        return;
+    }
 
-	this->file->GetPage(&bufferPage, startPageIdx);
+    long long blockSize = (MaxMemorySize / m_numRuns) / PAGE_SIZE;
+    if (blockSize < 1) {
+        throw runtime_error("In BigQ::writeToPipe, no enough memory!");
+    }
 
-	this->nextRecordPtr = new Record();
-	this->bufferPage.GetFirst(nextRecordPtr);
+    vector<Block> blocks;
+    for (long long i = 0; i < m_numRuns; i++) {
+        Block newBlock(blockSize, m_runStartEndLoc[i], inputFile);
+        blocks.push_back(newBlock);
+
+        Record* tmp = new Record();
+        if (newBlock.getFrontRecord(*tmp)){
+            safeHeapPush(i, tmp);
+        }
+        else {
+            delete tmp;
+            tmp = NULL;
+        }
+    }
+    
+    mergeBlocks(blocks);
+
+    m_outputPipe->ShutDown();
+
+}
+
+void BigQ::externalSort(){
+    File tmpFile;
+    
+    tmpFile.Open(0, (char*)(m_sortTmpFilePath.c_str()));
+    readFromPipe(tmpFile);
+    tmpFile.Close();
+
+    tmpFile.Open(1, (char*)(m_sortTmpFilePath.c_str()));
+    writeToPipe(tmpFile);
+    tmpFile.Close();
+
+    tmpFile.Open(0, (char*)(m_sortTmpFilePath.c_str()));
+    tmpFile.Close();
 }
 
 
+Block::Block() {}
 
-Record* Run::GetNextRecordPtr() {
-	return nextRecordPtr;
+Block::Block(long long size, pair<long long, long long> runStartEndPageIdx, File &inputFile) {
+    m_blockSize = size;
+    m_nextLoadPageIdx = runStartEndPageIdx.first;
+    m_runEndPageIdx = runStartEndPageIdx.second;
+    m_inputFile = inputFile;
+    while (loadPage());
+}
+
+bool Block::noMorePages() {
+    return (m_nextLoadPageIdx >= m_runEndPageIdx);
+}
+
+bool Block::isFull() {
+    return (m_pages.size() >= m_blockSize);
+}
+
+bool Block::isEmpty() {
+    return m_pages.empty();
+}
+
+int Block::loadPage() {
+    if (noMorePages() || isFull()) {
+        return 0;
+    }
+    m_pages.push_back(new Page());
+    m_inputFile.GetPage(m_pages.back(), m_nextLoadPageIdx);
+    m_nextLoadPageIdx++;
+    return 1;
+}
+
+int Block::getFrontRecord(Record& front) {
+    if (isEmpty()) {
+        return 0;
+    }
+    return m_pages[0]->GetFirstNoConsume(front);
+}
+
+int Block::popFrontRecord() {
+    if (isEmpty()) {
+        return 0;
+    }
+    
+    Record tmp;
+    m_pages[0]->GetFirst(&tmp);
+    
+    if (m_pages[0]->IsEmpty()) {
+        delete m_pages[0];
+        m_pages[0] = NULL;
+        m_pages.erase(m_pages.begin());
+        loadPage();
+    }
+
+    return 1;
 }

@@ -1,52 +1,87 @@
 #ifndef BIGQ_H
 #define BIGQ_H
-#include <pthread.h>
+
+#include <algorithm> 
 #include <iostream>
+#include <pthread.h>
 #include <queue>
+#include <stdexcept>
+#include <string>
+#include <vector>
+#include <unistd.h>
+#include "Comparison.h"
+#include "ComparisonEngine.h"
+#include "Defs.h"
 #include "Pipe.h"
-#include "File.h"
-#include "Record.h"
+#include "Schema.h"
+#include "Util.h"
 
 using namespace std;
 
+enum SortOrder {Ascending, Descending};
+
+class Block {
+    private:
+        long long m_blockSize;
+        long long m_nextLoadPageIdx;
+        long long m_runEndPageIdx;
+        File m_inputFile;
+        vector<Page*> m_pages; 
+        
+    public:
+        Block();
+        Block(long long size, pair<long long, long long> runStartEndPageIdx ,File &inputFile);
+        
+        bool noMorePages(); 
+        bool isFull();
+        bool isEmpty();
+        int loadPage();
+        int getFrontRecord(Record& front);
+        int popFrontRecord();
+};
+
 class BigQ {
 private:
+    
+    Pipe *m_inputPipe; 
+    Pipe *m_outputPipe;
+    static SortOrder m_sortMode;
+    static OrderMaker m_attOrder;
+    long long m_runLength; 
+    long long m_numRuns; 
+    string m_sortTmpFilePath;
 
-	OrderMaker* order;
-	int runlen;
-	ComparisonEngine* comp;
+    vector< pair<long long, long long> > m_runStartEndLoc; 
+    
+    static bool compare4Sort(Record *left, Record *right);
 
-	File file;
+    struct compare4PQ {
+        bool operator() (pair<long long, Record*>& left, pair<long long, Record*>& right) {
+            return compare4Sort(left.second, right.second);
+        }
+    };
+    
+    void sortRecords(vector<Record*> &recs, const OrderMaker &order, SortOrder mode);
+    void readFromPipe(File &outputFile);
 
-	vector<off_t> runIndexes;
+public:  
+    priority_queue< pair<long long, Record*>, vector< pair<long long, Record*> >, compare4PQ > m_heap;
 
-public:
-	Pipe* input, * output;
-	pthread_t* thread = nullptr;
-	BigQ(Pipe* in, Pipe* out, OrderMaker& sortorder, int runlen);
-	~BigQ();
+    void safeHeapPush(long long idx, Record* pushMe);
 
-	int ExcuteSortPhase();
-	int ExcuteMergePhase();
+    int nextPopBlock(vector<Block>& blocks);
+
+    void mergeBlocks(vector<Block>& blocks);
+
+    void writeToPipe(File &inputFile);
+    
+    void externalSort();
+
+    BigQ() {}
+
+    BigQ (Pipe &inputPipe, Pipe &outputPipe, OrderMaker &order, int runLength);
+    
+    ~BigQ();
 };
-
-//Class run represent run used for merging
-class Run {
-private:
-	File* file;
-	Page bufferPage;
-	off_t startPageIdx;
-	off_t curPageIdx;
-	int runlen;
-public:
-	Record* nextRecordPtr;
-	Run(File* file, off_t startPageIndx, int runlen);
-	//Used to update the top record of current run
-	int NextRecord();
-	Record* GetNextRecordPtr();
-};
-
-void* Worker(void* (BigQ::*));
-
 
 #endif

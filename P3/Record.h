@@ -5,7 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
+#include <string>
+#include <iostream>
 #include "Defs.h"
 #include "ParseTree.h"
 #include "Schema.h"
@@ -23,51 +24,77 @@
 
 class Record {
 
-friend class ComparisonEngine;
-friend class Page;
+	friend class ComparisonEngine;
+	friend class Page;
 
 private:
-	char* GetBits ();
-	void SetBits (char *bits);
-	void CopyBits(char *bits, int b_len);
+	char* GetBits();
+	void SetBits(char* bits);
+	void CopyBits(char* bits, int b_len);
 
 public:
-	char *bits;
-	Record ();
+	char* bits;
+	Record();
 	~Record();
+
+	// Added by Yifan wang
+	int length();
+
+	template <typename T>
+	T* GetAttVal(int att_idx) {
+		int attLoc = ((int*)(bits)) [att_idx + 1];
+		return (T*)(bits + attLoc);
+		/*
+		switch (att_type) {
+
+			case Int:{
+				return *((T*)(bits + attLoc));
+			}
+			case Double:{
+				return *((T*)(bits + attLoc));
+			}
+			case String:{
+				return std::string((char*)(bits + attLoc));
+			}
+			default:{
+				std::cerr << "[Error] In function Record::GetAttVal(), invalid attribute type" << std::endl;
+				exit(1);
+			}
+		}*/
+	}
 
 	// suck the contents of the record fromMe into this; note that after
 	// this call, fromMe will no longer have anything inside of it
-	void Consume (Record *fromMe);
+	void Consume(Record* fromMe);
 
-	// make a copy of the record fromMe; note that this is far more 
+	// make a copy of the record fromMe; note that this is far more
 	// expensive (requiring a bit-by-bit copy) than Consume, which is
 	// only a pointer operation
-	void Copy (Record *copyMe);
+	void Copy(Record* copyMe);
 
 	// reads the next record from a pointer to a text file; also requires
 	// that the schema be given; returns a 0 if there is no data left or
 	// if there is an error and returns a 1 otherwise
-	int SuckNextRecord (Schema *mySchema, FILE *textFile);
+	int SuckNextRecord(Schema* mySchema, FILE* textFile);
 
-	int ComposeRecord (Schema *mySchema, const char *src);
+	int ComposeRecord(Schema* mySchema, const char* src);
 
-	// this projects away various attributes... 
+	// this projects away various attributes...
 	// the array attsToKeep should be sorted, and lists all of the attributes
 	// that should still be in the record after Project is called.  numAttsNow
 	// tells how many attributes are currently in the record
-	void Project (int *attsToKeep, int numAttsToKeep, int numAttsNow);
+	void Project(int* attsToKeep, int numAttsToKeep, int numAttsNow);
 
 	// takes two input records and creates a new record by concatenating them;
 	// this is useful for a join operation
 	// attsToKeep[] = {0, 1, 2, 0, 2, 4} --gets 0,1,2 records from left 0, 2, 4 recs from right and startOfRight=3
 	// startOfRight is the index position in attsToKeep for the first att from right rec
-	void MergeRecords (Record *left, Record *right, int numAttsLeft, 
-		int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight);
+	void MergeRecords(Record* left, Record* right, int numAttsLeft,
+		int numAttsRight, int* attsToKeep, int numAttsToKeep, int startOfRight);
 
 	// prints the contents of the record; this requires
 	// that the schema also be given so that the record can be interpreted
-	void Print (Schema *mySchema);
+	void Print(Schema* mySchema);
 };
 
 #endif

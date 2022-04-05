@@ -27,6 +27,11 @@ private:
 
 public:
 
+	// To use Pipe instances as members in BigQ, we should provide a default constructor for Pipe
+	// Otherwise we cannot declare input pipe and output pipe instances as members of BigQ
+	// This default constructor is only used for declaring members of BigQ
+	Pipe();
+
 	// this sets up the pipeline; the parameter is the number of
 	// records to buffer
 	Pipe (int bufferSize);	
@@ -48,6 +53,14 @@ public:
 	// shut down the pipepine; used by the consumer to signal that 
 	// there is no more data that is going to be added into the pipe
 	void ShutDown ();
+
+	//void Open();
+
+	// return true if this pipe has been closed / is done 
+	bool isClosed();
+
+	// return true if this pipe is empty
+	bool isEmpty();
 
 };
 
