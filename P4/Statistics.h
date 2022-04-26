@@ -45,11 +45,14 @@ typedef map<string, AttributeInfo> AttrMap;
 typedef map<string, RelationInfo> RelMap;
 
 class AttributeInfo {
+	friend class RelationInfo;
+	friend class Statistics;
 
-public:
-
+private:
 	string attrName;
 	int distinctTuples;
+public:
+
 
 	AttributeInfo();
 	AttributeInfo(string name, int num);
@@ -60,8 +63,8 @@ public:
 };
 
 class RelationInfo {
-
-public:
+	friend class Statistics;
+private:
 
 	double numTuples;
 
@@ -70,6 +73,7 @@ public:
 
 	AttrMap attrMap;
 	map<string, string> relJoint;
+public:
 
 	RelationInfo();
 	RelationInfo(string name, int tuples);
@@ -91,8 +95,8 @@ private:
 	int GetRelForOp(Operand* operand, char* relName[], int numJoin, RelationInfo& relInfo);
 
 public:
-
 	RelMap relMap;
+
 
 	Statistics();
 	Statistics(Statistics& copyMe);	 // Performs deep copy
