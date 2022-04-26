@@ -42,6 +42,27 @@ public:
 	// empty it out
 	void EmptyItOut ();
 
+	// Get the first record without consuming it from page.
+	int GetFirstNoConsume(Record &firstOne);
+
+	// Get the next record and move forward the cursor in current page
+	int GetNextRecord(Record &nextOne);
+
+	// Get the next record without moving forward the cursor in current page
+	//int GetNextRecordNoMove(Record &nextOne);
+
+	// Get the number of records in this page. That is, numRecs.
+	int GetNumRecs();
+
+	// Check if page is empty
+	bool IsEmpty() {return (numRecs == 0);}
+
+	// Check if 'current' pointer of this page pointing to the first node.
+	bool AtFirst();
+
+	// If 'current' pointer of this page NOT pointing to the first node, move it to first.
+	void MoveToFirst();
+
 };
 
 
