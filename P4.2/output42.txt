@@ -1,0 +1,429 @@
+TC1
+enter:
+Number of selects: 1
+Number of joins: 0
+PRINTING TREE IN ORDER:
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 1
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+
+ ***********
+SelectPipe operation
+Input Pipe 1
+Output pipe ID 2
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+CNF:
+( n.n_name = UNITED STATES )
+
+ ***********
+Project operation
+Input Pipe 2
+Output pipe ID 3
+Output Schema:
+        Att n.n_nationkey: Int
+
+
+***************************************************************************************************************************
+TC2
+enter:
+Number of selects: 1
+Number of joins: 1
+PRINTING TREE IN ORDER:
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 1
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+
+ ***********
+SelectPipe operation
+Input Pipe 1
+Output pipe ID 3
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+CNF:
+( n.n_nationkey > 5 )
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 2
+Output Schema:
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+
+ ***********
+Join operation
+Left Input Pipe 3
+Right Input Pipe 2
+Output pipe ID 4
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+CNF:
+        ( n.n_regionkey = r.r_regionkey )
+
+ ***********
+Project operation
+Input Pipe 4
+Output pipe ID 5
+Output Schema:
+        Att n.n_name: String
+
+
+***************************************************************************************************************************
+TC3
+enter:
+Number of selects: 1
+Number of joins: 1
+PRINTING TREE IN ORDER:
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 1
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+
+ ***********
+SelectPipe operation
+Input Pipe 1
+Output pipe ID 3
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+CNF:
+( n.n_name = UNITED STATES )
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 2
+Output Schema:
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+
+ ***********
+Join operation
+Left Input Pipe 3
+Right Input Pipe 2
+Output pipe ID 4
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+CNF:
+        ( n.n_regionkey = r.r_regionkey )
+
+ ***********
+Sum operation
+Input Pipe 4
+Output pipe ID 5
+Output Schema:
+        Att sum: Int
+
+Function (in Reverse Polish notation): 
+        SUM ( n.n_nationkey )
+
+ ***********
+Project operation
+Input Pipe 5
+Output pipe ID 6
+Output Schema:
+        Att sum: Int
+
+
+***************************************************************************************************************************
+TC4
+enter:
+Number of selects: 1
+Number of joins: 1
+GROUPING ON n_regionkey
+        Att n_regionkey: Int
+
+PRINTING TREE IN ORDER:
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 1
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+
+ ***********
+SelectPipe operation
+Input Pipe 1
+Output pipe ID 3
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+CNF:
+( n.n_name = UNITED STATES )
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 2
+Output Schema:
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+
+ ***********
+Join operation
+Left Input Pipe 3
+Right Input Pipe 2
+Output pipe ID 4
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+CNF:
+        ( n.n_regionkey = r.r_regionkey )
+
+ ***********
+Group By operation
+Input Pipe 4
+Output pipe ID 5
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+OrderMaker: 
+NumAtts =     1
+  0:     2 Int
+
+ ***********
+Sum operation
+Input Pipe 5
+Output pipe ID 6
+Output Schema:
+        Att sum: Int
+
+Function (in Reverse Polish notation): 
+        SUM ( n.n_regionkey )
+
+ ***********
+Project operation
+Input Pipe 6
+Output pipe ID 7
+Output Schema:
+        Att sum: Int
+
+
+***************************************************************************************************************************
+TC5
+enter:
+Number of selects: 1
+Number of joins: 2
+GROUPING ON r_regionkey
+        Att r_regionkey: Int
+
+PRINTING TREE IN ORDER:
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 2
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+
+ ***********
+SelectPipe operation
+Input Pipe 2
+Output pipe ID 4
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+
+CNF:
+( n.n_nationkey > 10 )
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 3
+Output Schema:
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+
+ ***********
+Join operation
+Left Input Pipe 4
+Right Input Pipe 3
+Output pipe ID 5
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+
+CNF:
+        ( n.n_regionkey = r.r_regionkey )
+
+ ***********
+SelectFile operation
+Input pipe 0
+Output pipe ID 1
+Output Schema:
+        Att c.c_custkey: Int
+        Att c.c_name: String
+        Att c.c_address: String
+        Att c.c_nationkey: Int
+        Att c.c_phone: String
+        Att c.c_acctbal: Double
+        Att c.c_mktsegment: String
+        Att c.c_comment: String
+
+
+ ***********
+Join operation
+Left Input Pipe 5
+Right Input Pipe 1
+Output pipe ID 6
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+        Att c.c_custkey: Int
+        Att c.c_name: String
+        Att c.c_address: String
+        Att c.c_nationkey: Int
+        Att c.c_phone: String
+        Att c.c_acctbal: Double
+        Att c.c_mktsegment: String
+        Att c.c_comment: String
+
+CNF:
+        ( n.n_nationkey = c.c_nationkey )
+
+ ***********
+Group By operation
+Input Pipe 6
+Output pipe ID 7
+Output Schema:
+        Att n.n_nationkey: Int
+        Att n.n_name: String
+        Att n.n_regionkey: Int
+        Att n.n_comment: String
+        Att r.r_regionkey: Int
+        Att r.r_name: String
+        Att r.r_comment: String
+        Att c.c_custkey: Int
+        Att c.c_name: String
+        Att c.c_address: String
+        Att c.c_nationkey: Int
+        Att c.c_phone: String
+        Att c.c_acctbal: Double
+        Att c.c_mktsegment: String
+        Att c.c_comment: String
+
+OrderMaker: 
+NumAtts =     1
+  0:     4 Int
+
+ ***********
+Sum operation
+Input Pipe 7
+Output pipe ID 8
+Output Schema:
+        Att sum: Int
+
+Function (in Reverse Polish notation): 
+        SUM ( n.n_nationkey r.r_regionkey + )
+
+ ***********
+Project operation
+Input Pipe 8
+Output pipe ID 9
+Output Schema:
+        Att sum: Int
+
+
+ ***********
+Distinct operation
+Input Pipe 9
+Output pipe ID 10
+Output Schema:
+        Att sum: Int
+
+
+***************************************************************************************************************************
