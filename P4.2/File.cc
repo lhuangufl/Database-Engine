@@ -3,11 +3,11 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <iostream>
 #include <stdlib.h>
-
 
 
 Page :: Page () {
@@ -155,6 +155,58 @@ void Page :: FromBinary (char *bits) {
 
 	delete temp;
 }
+
+int Page::GetFirstNoConsume(Record &firstOne){
+
+    myRecs->MoveToStart();
+
+    // make sure there is data 
+    if (!myRecs->RightLength ()) {
+        return 0;
+    }
+
+    // Record contains a pointer *bits --> So we have to deep copy that when fetching a record.
+    // If we only use returnRecord = goalRecord, we will only copy value of the pointer, 
+    // that is, an address, instead of the data in that address. 
+    // This causes two pointers to point at the same address, which means if we free one of them, 
+    // another pointer will become a dangling pointer.
+    // Most of time, the error "double free or corruption" is caused by this case.  
+    firstOne.Copy(myRecs->Current(0));
+    myRecs->Advance();
+    return 1;
+}
+
+int Page::GetNextRecord(Record &nextOne){
+    try{
+        if (myRecs->RightLength() > 0){ // The next record in this page exists.
+            nextOne.Copy(myRecs->Current(0));
+            myRecs->Advance();
+            return 1;
+        }
+        else{ // Has arrived at the last record in this page.
+            return 2;
+        }
+    }
+    catch(exception e){
+        cerr << "[Error] In function Page::GetNextRecord(Record *nextOne): " << e.what() << endl;
+        return 0;
+    }
+}
+
+int Page::GetNumRecs() {
+    return numRecs;
+}
+
+bool Page::AtFirst(){
+    return (myRecs->LeftLength() == 0);
+}
+
+void Page::MoveToFirst(){
+    if (!AtFirst()){
+        myRecs->MoveToStart();
+    }
+}
+
 
 File :: File () {
 }

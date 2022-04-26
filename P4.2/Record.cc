@@ -2,8 +2,8 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <iostream>
 #include <stdlib.h>
+#include <iostream>
 
 
 Record :: Record () {
@@ -16,6 +16,21 @@ Record :: ~Record () {
 	}
 	bits = NULL;
 
+}
+
+/*
+ * Returns length of bits in byte
+ * Though it is called "bits", it is actually bytes 
+ * Each element in bits is a char of the record which is 1-byte long
+ * So length of bits is represented in byte initially
+ *  
+ * -- Added by Yifan Wang
+ */
+int Record :: length() {
+    if (bits == NULL) {
+        return 0;
+    }
+    return ((int *) bits)[0];
 }
 
 
@@ -340,7 +355,18 @@ void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {
 }
 
 
-// consumes right record and leaves the left record as it is
+/*
+ * consumes right record and leaves the left record as it is
+ * 
+ * left, right: left and right records
+ * numAttsLeft, numAttsRight: the total numbers of attributes in left and right records
+ * attsToKeep: indices of attributes needed be kept, formed by 2 parts, attsToKeep of left record and that of right record
+ * startOfRight: index of starting of right record's attsToKeep part in the whole attsToKeep
+ * For example, attsToKeep is {1, 3, 5, 0, 2, 4}, startOfRight is 3 
+ * -> we will keep No.1, 3 and 5 atts of left record and No.0, 2, 4 atts of right record
+ * attsToKeep[startOfRight:end] is indices of atts in right record; 
+ * attsToKeep[0:startOfRight] is indices of atts in left record 
+ */
 void Record :: MergeRecords (Record *left, Record *right, int numAttsLeft, int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight) {
 	delete [] bits;
 	bits = NULL;

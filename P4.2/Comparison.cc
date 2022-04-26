@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
+
 #include "Comparison.h"
 
 
@@ -101,6 +102,126 @@ OrderMaker :: OrderMaker(Schema *schema) {
         }
 }
 
+OrderMaker::OrderMaker(std::string& numAttsStr, std::string& whichAttsStr, std::string& whichTypesStr) {
+    numAtts = Util::fromString<int>(numAttsStr);
+    size_t atts_tok_start = 0, types_tok_start = 0;
+    size_t atts_tok_end = whichAttsStr.find(" ");
+    size_t types_tok_end = whichTypesStr.find(" ");
+    int i = 0;
+    bool final_tok = true;
+    while (true) {
+        if (types_tok_end == string::npos && !final_tok){
+            break;
+        }
+        else if (types_tok_end == string::npos && final_tok){
+            final_tok = false;
+            atts_tok_end = whichAttsStr.size();
+            types_tok_end = whichTypesStr.size();
+        }
+        string att = whichAttsStr.substr(atts_tok_start, atts_tok_end - atts_tok_start);
+        string type = whichTypesStr.substr(types_tok_start, types_tok_end - types_tok_start);
+
+        if (TypeStr[Int] == type) {
+            whichTypes[i] = Int;
+        }
+        else if (TypeStr[Double] == type) {
+            whichTypes[i] = Double;
+        }
+        else {
+            whichTypes[i] = String;
+        }
+
+        whichAtts[i] = Util::fromString<int>(att);
+
+        atts_tok_start = atts_tok_end+1;
+        types_tok_start = types_tok_end+1;
+        atts_tok_end = whichAttsStr.find(" ", atts_tok_start);
+        types_tok_end = whichTypesStr.find(" ", types_tok_start);
+        i++;
+    }
+
+}
+
+int OrderMaker::GetAtts(Attribute* atts, int* att_indices) {
+	//Attribute atts[MAX_NUM_ATTS];
+	for (int i = 0; i < numAtts; i++) {
+		switch (whichTypes[i]) {
+			case Int:
+				atts[i] = {"Int", Int};
+				break;
+			case Double:
+				atts[i] = {"Double", Double};
+				break;
+			case String:
+				atts[i] = {"String", String};
+				break;
+		}
+		att_indices[i] = whichAtts[i];
+	}
+	return numAtts;
+}
+
+int CNF::findAtt(int att) {
+    int flat_idx = -1;
+    for (int i=0; i<numAnds; i++) {
+        for (int j=0; j<orLens[i]; j++) {
+            flat_idx++;
+            if (
+                att == orList[i][j].whichAtt1 && orList[i][j].operand1 != Literal
+             || att == orList[i][j].whichAtt2 && orList[i][j].operand2 != Literal
+            ) {
+                return flat_idx;//pair<int, int>(i, j);
+            }
+        }
+    }
+    return -1;//pair<int, int>(-1, -1);
+}
+
+int OrderMaker::QueryOrderMaker(OrderMaker& queryOrder, OrderMaker& sortOrder, CNF& cnf) {
+    //vector<pair<int, int>> idx_att_in_cnf;
+    vector<int> idx_att_in_cnf;
+
+    for (int i=0; i<sortOrder.numAtts; i++) {
+        int att = sortOrder.whichAtts[i];
+        //Type type = sortOrder.whichTypes[i];
+        int loc_att_cnf = cnf.findAtt(att);
+        if (loc_att_cnf == -1) {
+            return 0;
+        }
+        idx_att_in_cnf.push_back(loc_att_cnf);
+    }
+    int att; Type type;
+    for (int i = 0; i < sortOrder.numAtts; i++) {
+        att = sortOrder.whichAtts[i];
+        type = sortOrder.whichTypes[i];
+        queryOrder.whichAtts[i] = att;
+        queryOrder.whichTypes[i] = type;
+        queryOrder.numAtts++;
+    }
+    /*
+    int flat_count = -1;
+    for (int i=0; i<cnf.numAnds; i++) {
+        for (int j=0; j<cnf.orLens[i]; j++) {
+            flat_count++;
+            if (find(idx_att_in_cnf.begin(), idx_att_in_cnf.end(), flat_count) == idx_att_in_cnf.end()) {
+                Comparison tmp(cnf.orList[i][j]);
+                type = tmp.attType;
+                if (tmp.operand1 != Literal) {
+                    att = tmp.whichAtt1;
+                }   
+                else {
+                    att = tmp.whichAtt2;
+                }
+                queryOrder.whichAtts[queryOrder.numAtts] = att;
+                queryOrder.whichTypes[queryOrder.numAtts] = type;
+                queryOrder.numAtts++;
+            }
+        }
+    }
+    */
+    return 1;
+}
+
 
 void OrderMaker :: Print () {
 	printf("NumAtts = %5d\n", numAtts);
@@ -114,6 +235,37 @@ void OrderMaker :: Print () {
 		else
 			printf("String\n");
 	}
+}
+
+std::string OrderMaker::toString() {
+    std::string res = "";
+    res += Util::toString(numAtts);
+    if (numAtts > 0) {
+        res += "\n";
+    }
+    for (int i = 0; i < numAtts; i++)
+    {
+        res += Util::toString(whichAtts[i]);
+        if (i < numAtts - 1) {
+            res += " ";
+        }
+        else {
+            res += "\n";
+        }
+    }
+    for (int i = 0; i < numAtts; i++) {
+        if (whichTypes[i] == Int)
+            res += "Int";
+        else if (whichTypes[i] == Double)
+            res += "Double";
+        else
+            res += "String";
+
+        if (i < numAtts - 1) {
+            res += " ";
+        }
+    }
+    return res;
 }
 
 

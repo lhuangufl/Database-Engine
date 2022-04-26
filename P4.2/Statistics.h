@@ -1,29 +1,3 @@
-// #ifndef STATISTICS_
-// #define STATISTICS_
-// #include "ParseTree.h"
-//
-//
-// class Statistics
-// {
-// public:
-// 	Statistics();
-// 	Statistics(Statistics &copyMe);	 // Performs deep copy
-// 	~Statistics();
-//
-//
-// 	void AddRel(char *relName, int numTuples);
-// 	void AddAtt(char *relName, char *attName, int numDistincts);
-// 	void CopyRel(char *oldName, char *newName);
-//
-// 	void Read(char *fromWhere);
-// 	void Write(char *fromWhere);
-//
-// 	void  Apply(struct AndList *parseTree, char *relNames[], int numToJoin);
-// 	double Estimate(struct AndList *parseTree, char **relNames, int numToJoin);
-//
-// };
-//
-// #endif
 
 #ifndef STATISTICS_H
 #define STATISTICS_H
@@ -45,11 +19,13 @@ typedef map<string, AttributeInfo> AttrMap;
 typedef map<string, RelationInfo> RelMap;
 
 class AttributeInfo {
-
-public:
-
+	friend class RelationInfo;
+	friend class Statistics;
+private:
 	string attrName;
 	int distinctTuples;
+public:
+
 
 	AttributeInfo();
 	AttributeInfo(string name, int num);
@@ -60,9 +36,8 @@ public:
 };
 
 class RelationInfo {
-
-public:
-
+	friend class Statistics;
+private:
 	double numTuples;
 
 	bool isJoint;
@@ -70,6 +45,8 @@ public:
 
 	AttrMap attrMap;
 	map<string, string> relJoint;
+public:
+
 
 	RelationInfo();
 	RelationInfo(string name, int tuples);
