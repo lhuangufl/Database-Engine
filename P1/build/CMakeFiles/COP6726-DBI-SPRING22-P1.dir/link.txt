@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/COP6726-DBI-SPRING22-P1.dir/test.cc.o -o COP6726-DBI-SPRING22-P1 
