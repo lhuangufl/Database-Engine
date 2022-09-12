@@ -1,3 +1,0 @@
-/media/GitHub/COP6726-DBI-SPRING22/P1/build/CMakeFiles/rebuild_cache.dir
-/media/GitHub/COP6726-DBI-SPRING22/P1/build/CMakeFiles/edit_cache.dir
-/media/GitHub/COP6726-DBI-SPRING22/P1/build/CMakeFiles/COP6726-DBI-SPRING22-P1.dir
